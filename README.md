@@ -89,11 +89,11 @@ You can create more users inside the Coordinator dashboard.
 
 1) Compile
 ```bash
-javac ChatGPTTest/*.java
+javac Lab_Exercise/*.java
 ```
 3) Run
 ```bash
-java ChatGPTTest.SeminarManagementSystem
+java Lab_Exercise.SeminarManagementSystem
 ```
 ## Requirements
 - Java 17 or later
@@ -102,4 +102,5 @@ java ChatGPTTest.SeminarManagementSystem
 
 ## License
 This project is intended for academic and educational use.
+
 
