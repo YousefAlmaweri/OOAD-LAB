@@ -1,32 +1,102 @@
-# Seminar Management System (Java Swing)
+# FCI Postgraduate Seminar Management System
 
-## Overview
-This is a full implementation of the Seminar Management System for the Faculty of Computing and Informatics (FCI). The system is built strictly using Java Swing and follows the provided UML Class and Sequence diagrams.
+A standalone Java Swing application designed to manage the full lifecycle of postgraduate research seminars at FCI — from student registration to evaluation, awards, and final reporting.
+
+The system supports three roles (Student, Evaluator, Coordinator) and persists all data automatically using file-based storage.
 
 ## Features
-- **Role-Based Access Control**: Specialized interfaces for Students, Evaluators, and Coordinators.
-- **Student Module**: Seminar registration, material upload, and presentation preference selection.
-- **Evaluator Module**: Rubric-based assessment and feedback entry for assigned presenters.
-- **Coordinator Module**: Session management, resource allocation, award computation, and report generation.
-- **Data Persistence**: Serialization-based data storage.
+
+### Student
+- Submit and update:
+  - Research title
+  - Abstract
+  - Supervisor name
+  - Presentation type (Oral / Poster)
+  - Material file path
+  - Poster board ID
+- View assigned presentation session and time slot
+- Vote for People’s Choice Award
+
+### Evaluator
+- View assigned presentations
+- Read:
+  - Student abstract
+  - Supervisor
+  - Presentation material path
+- Evaluate using rubrics:
+  - Problem clarity
+  - Methodology
+  - Results
+  - Presentation
+- Add qualitative comments
+- Automatically calculate average scores
+
+### Coordinator
+- Manage users (Students, Evaluators, Coordinators)
+- Create seminar sessions (Oral / Poster)
+- Add time slots
+- Assign:
+  - Students to slots
+  - Evaluators to presentations
+- Generate:
+  - Seminar schedule
+  - Final evaluation report
+  - Award winners
+- Export all data as CSV:
+  - Users
+  - Schedule
+  - Evaluations
+  - Awards
+
+## Awards System
+The system computes:
+
+- Best Oral: Highest average score among oral presentations (requires at least 1 evaluation)
+- Best Poster: Highest average score among poster presentations (requires at least 1 evaluation)
+- People’s Choice: Highest number of student votes (tie-break by average score)
+
+## Data Persistence
+All data is stored in:
+seminar_data.ser
+
+This file is automatically created and updated every time the system changes.
+No database is required.
 
 ## Project Structure
-- `com.sms.model`: Domain entities (User, Student, Evaluator, Coordinator, Session, etc.)
-- `com.sms.view`: Java Swing GUI components.
-- `com.sms.controller`: Business logic and workflow management.
-- `com.sms.data`: Data persistence layer.
+
+lab_exercise/
+│
+├── ChatGPTTest/
+│   ├── SeminarManagementSystem.java   # Main entry point
+│   ├── DataModels.java                # Users, submissions, sessions, evaluations
+│   ├── DataStore.java                 # Persistence & data access
+│   ├── UIUtil.java                    # UI helpers
+│   ├── Panels.java                    # All Swing panels and dashboards
+│   └── seminar_data.ser               # Auto-generated at runtime
+│
+└── README.md
+
+## Default Accounts
+
+Role         Username      Password
+Coordinator  coordinator   admin123
+Evaluator    evaluator1    pass123
+Student      student1      pass123
+
+You can create more users inside the Coordinator dashboard.
 
 ## How to Run
-1. Compile the project:
-   ```bash
-   javac -d bin src/com/sms/*.java src/com/sms/model/*.java src/com/sms/view/*.java src/com/sms/controller/*.java src/com/sms/data/*.java
-   ```
-2. Run the application:
-   ```bash
-   java -cp bin com.sms.Main
-   ```
 
-## Default Credentials
-- **Student**: `student@fci.edu` / `pass123`
-- **Evaluator**: `evaluator@fci.edu` / `pass123`
-- **Coordinator**: `coordinator@fci.edu` / `pass123`
+1) Compile
+javac ChatGPTTest/*.java
+
+2) Run
+java ChatGPTTest.SeminarManagementSystem
+
+## Requirements
+- Java 17 or later
+- Any OS (Windows, macOS, Linux)
+- No external libraries
+
+## License
+This project is intended for academic and educational use.
