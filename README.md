@@ -66,13 +66,12 @@ No database is required.
 
 ```text
 lab_exercise/
-├── ChatGPTTest/
-│   ├── SeminarManagementSystem.java   # Application entry point
-│   ├── DataModels.java                # Users, submissions, sessions, evaluations
-│   ├── DataStore.java                 # File persistence and data access
-│   ├── UIUtil.java                    # UI helper utilities
-│   ├── Panels.java                   # All Swing dashboards and logic
-│   └── seminar_data.ser               # Auto-generated persistent storage
+│  ├── SeminarManagementSystem.java   # Application entry point
+│  ├── DataModels.java                # Users, submissions, sessions, evaluations
+│  ├── DataStore.java                 # File persistence and data access
+│  ├── UIUtil.java                    # UI helper utilities
+│  ├── Panels.java                   # All Swing dashboards and logic
+│  └── seminar_data.ser               # Auto-generated persistent storage
 └── README.md
 ```
 
@@ -103,3 +102,4 @@ java ChatGPTTest.SeminarManagementSystem
 
 ## License
 This project is intended for academic and educational use.
+
