@@ -64,35 +64,38 @@ No database is required.
 
 ## Project Structure
 
+```text
 lab_exercise/
-│
 ├── ChatGPTTest/
-│   ├── SeminarManagementSystem.java   # Main entry point
+│   ├── SeminarManagementSystem.java   # Application entry point
 │   ├── DataModels.java                # Users, submissions, sessions, evaluations
-│   ├── DataStore.java                 # Persistence & data access
-│   ├── UIUtil.java                    # UI helpers
-│   ├── Panels.java                    # All Swing panels and dashboards
-│   └── seminar_data.ser               # Auto-generated at runtime
-│
+│   ├── DataStore.java                 # File persistence and data access
+│   ├── UIUtil.java                    # UI helper utilities
+│   ├── Panels.java                   # All Swing dashboards and logic
+│   └── seminar_data.ser               # Auto-generated persistent storage
 └── README.md
+```
+
 
 ## Default Accounts
-
+```md
 Role         Username      Password
 Coordinator  coordinator   admin123
 Evaluator    evaluator1    pass123
 Student      student1      pass123
-
+```
 You can create more users inside the Coordinator dashboard.
 
 ## How to Run
 
 1) Compile
+```bash
 javac ChatGPTTest/*.java
-
-2) Run
+```
+3) Run
+```bash
 java ChatGPTTest.SeminarManagementSystem
-
+```
 ## Requirements
 - Java 17 or later
 - Any OS (Windows, macOS, Linux)
