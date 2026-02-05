@@ -1,4 +1,4 @@
-package Lab_Exercise;
+package Lab_Exercise.V2;
 
 import javax.swing.*;
 import java.io.*;
@@ -14,7 +14,10 @@ class DataStore implements Serializable {
     List<Session> sessions = new ArrayList<>();
     List<Evaluation> evaluations = new ArrayList<>();
 
-    // People’s Choice votes: submissionId -> count
+    // Poster board criteria (boardId -> criteria/notes)
+    List<PosterBoardCriteria> posterCriteria = new ArrayList<>();
+
+    // People's Choice votes: submissionId -> count
     Map<UUID, Integer> peoplesChoiceVotes = new HashMap<>();
 
     AwardWinners winners = new AwardWinners();
@@ -100,4 +103,63 @@ class DataStore implements Serializable {
     int peoplesChoiceCount(UUID submissionId) {
         return peoplesChoiceVotes.getOrDefault(submissionId, 0);
     }
+
+
+    // -----------------------------
+    // Poster Board Criteria helpers
+    // -----------------------------
+    List<String> allPosterBoardIds() {
+        // Collect board IDs that students provided (POSTER submissions)
+        LinkedHashSet<String> ids = new LinkedHashSet<>();
+        for (Submission s : submissions) {
+            if (s != null && s.presentationType == PresentationType.POSTER) {
+                String id = (s.posterBoardId == null) ? "" : s.posterBoardId.trim();
+                if (!id.isEmpty()) ids.add(id);
+            }
+        }
+        // Also include any board IDs created in criteria list
+        for (PosterBoardCriteria c : posterCriteria) {
+            if (c == null) continue;
+            String id = (c.boardId == null) ? "" : c.boardId.trim();
+            if (!id.isEmpty()) ids.add(id);
+        }
+        return new ArrayList<>(ids);
+    }
+
+    PosterBoardCriteria criteriaForBoard(String boardId) {
+        if (boardId == null) return null;
+        String key = boardId.trim();
+        if (key.isEmpty()) return null;
+        for (PosterBoardCriteria c : posterCriteria) {
+            if (c != null && key.equalsIgnoreCase(String.valueOf(c.boardId).trim())) return c;
+        }
+        return null;
+    }
+
+    void upsertPosterCriteria(String boardId, String criteria, String notes) {
+        String key = (boardId == null) ? "" : boardId.trim();
+        if (key.isEmpty()) throw new IllegalArgumentException("Board ID cannot be empty.");
+
+        PosterBoardCriteria existing = criteriaForBoard(key);
+        if (existing != null) {
+            existing.boardId = key;
+            existing.criteria = (criteria == null) ? "" : criteria.trim();
+            existing.notes = (notes == null) ? "" : notes.trim();
+            existing.updatedDate = java.time.LocalDate.now();
+        } else {
+            posterCriteria.add(new PosterBoardCriteria(
+                    key,
+                    (criteria == null) ? "" : criteria.trim(),
+                    (notes == null) ? "" : notes.trim()
+            ));
+        }
+        save();
+    }
+
+    void deletePosterCriteria(UUID criteriaId) {
+        if (criteriaId == null) return;
+        posterCriteria.removeIf(c -> c != null && criteriaId.equals(c.id));
+        save();
+    }
+
 }

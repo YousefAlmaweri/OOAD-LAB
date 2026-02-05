@@ -1,4 +1,4 @@
-package Lab_Exercise;
+package Lab_Exercise.V2;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -202,7 +202,7 @@ abstract class RolePanel extends JPanel {
 
         javax.swing.Timer t = new javax.swing.Timer(400, e -> {
             User cu = app.getCurrentUser();
-            if (cu != null) who.setText(cu.fullName + " • " + cu.role);
+            if (cu != null) who.setText(cu.fullname + " * " + cu.role);
         });
         t.start();
 
@@ -269,7 +269,7 @@ class StudentPanel extends RolePanel {
         g.gridx = 1; form.add(supervisor, g);
 
         y++;
-        g.gridx = 0; g.gridy = y; form.add(new JLabel("Preferred Type"), g);
+        g.gridx = 0; g.gridy = y; form.add(new JLabel("Presentation Type"), g);
         g.gridx = 1; form.add(preferred, g);
 
         y++;
@@ -322,7 +322,7 @@ class StudentPanel extends RolePanel {
         card1.add(new JScrollPane(scheduleTable), BorderLayout.CENTER);
 
         JPanel card2 = new JPanel(new BorderLayout(8, 8));
-        card2.setBorder(BorderFactory.createTitledBorder("People’s Choice Vote"));
+        card2.setBorder(BorderFactory.createTitledBorder("People's Choice Vote"));
         JLabel hint = new JLabel("Vote for ONE presenter (can be yourself, but normally should not).");
         hint.setFont(hint.getFont().deriveFont(13f));
 
@@ -381,9 +381,9 @@ class StudentPanel extends RolePanel {
         sub.researchTitle = t;
         sub.abstractText = abs;
         sub.supervisorName = sup;
-        sub.preferredType = PresentationType.valueOf(pref);
+        sub.presentationType = PresentationType.valueOf(pref);
         sub.materialFilePath = path;
-        sub.posterBoardId = (sub.preferredType == PresentationType.POSTER) ? board : "";
+        sub.posterBoardId = (sub.presentationType == PresentationType.POSTER) ? board : "";
 
         sub.submittedDate = LocalDate.now();
         store.save();
@@ -411,7 +411,7 @@ class StudentPanel extends RolePanel {
             title.setText(UI.safe(sub.researchTitle));
             abstractText.setText(UI.safe(sub.abstractText));
             supervisor.setText(UI.safe(sub.supervisorName));
-            preferred.setSelectedItem(sub.preferredType.name());
+            preferred.setSelectedItem(sub.presentationType.name());
             filePath.setText(UI.safe(sub.materialFilePath));
             posterBoardId.setText(UI.safe(sub.posterBoardId));
             status.setText("Last saved: " + sub.submittedDate);
@@ -452,7 +452,7 @@ class StudentPanel extends RolePanel {
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                     if (value instanceof Submission s) {
                         User stu = store.findUser(s.studentUserId);
-                        setText((stu != null ? stu.fullName : "Unknown") + " • " + s.preferredType + " • " + s.researchTitle);
+                        setText((stu != null ? stu.fullname : "Unknown") + " * " + s.presentationType + " * " + s.researchTitle);
                     }
                     return this;
                 }
@@ -662,8 +662,8 @@ class EvaluatorPanel extends RolePanel {
 
         User stu = store.findUser(s.studentUserId);
         StringBuilder sb = new StringBuilder();
-        sb.append("Presenter: ").append(stu != null ? stu.fullName : "Unknown").append("\n");
-        sb.append("Type: ").append(s.preferredType).append("\n");
+        sb.append("Presenter: ").append(stu != null ? stu.fullname : "Unknown").append("\n");
+        sb.append("Type: ").append(s.presentationType).append("\n");
         sb.append("Title: ").append(s.researchTitle).append("\n");
         sb.append("Supervisor: ").append(s.supervisorName).append("\n");
         sb.append("Poster Board ID: ").append(UI.safe(s.posterBoardId)).append("\n");
@@ -796,8 +796,8 @@ class AssignedTableModel extends AbstractTableModel {
         boolean done = (evaluatorId != null && store.findEvaluation(evaluatorId, sid) != null);
 
         return switch (columnIndex) {
-            case 0 -> (stu != null ? stu.fullName : "Unknown");
-            case 1 -> sub.preferredType.toString();
+            case 0 -> (stu != null ? stu.fullname : "Unknown");
+            case 1 -> sub.presentationType.toString();
             case 2 -> sub.researchTitle;
             case 3 -> sessionName;
             case 4 -> UI.fmtScore(avg);
@@ -855,6 +855,7 @@ class CoordinatorPanel extends RolePanel {
         tabs.addTab("User Management", buildUserTab());
         tabs.addTab("Sessions & Slots", buildSessionTab());
         tabs.addTab("Assignments", buildAssignmentTab());
+        tabs.addTab("Poster Boards", buildPosterBoardsTab());
         tabs.addTab("Awards & Reports", buildReportsTab());
         return tabs;
     }
@@ -911,11 +912,11 @@ class CoordinatorPanel extends RolePanel {
 
     private void addUser() {
         String username = uUsername.getText().trim();
-        String fullName = uFullName.getText().trim();
+        String fullname = uFullName.getText().trim();
         String password = new String(uPassword.getPassword());
         String role = (String) uRole.getSelectedItem();
 
-        if (username.isEmpty() || fullName.isEmpty() || password.isEmpty() || role == null) {
+        if (username.isEmpty() || fullname.isEmpty() || password.isEmpty() || role == null) {
             UI.err(this, "Fill all user fields.");
             return;
         }
@@ -924,7 +925,7 @@ class CoordinatorPanel extends RolePanel {
             return;
         }
 
-        store.users.add(new User(username, password, fullName, Role.valueOf(role)));
+        store.users.add(new User(username, password, fullname, Role.valueOf(role)));
         store.save();
 
         uUsername.setText("");
@@ -952,7 +953,7 @@ class CoordinatorPanel extends RolePanel {
         }
 
         int ok = JOptionPane.showConfirmDialog(this,
-                "Delete user: " + u.fullName + " (" + u.username + ")?",
+                "Delete user: " + u.fullname + " (" + u.username + ")?",
                 "Confirm", JOptionPane.YES_NO_OPTION);
         if (ok != JOptionPane.YES_OPTION) return;
 
@@ -1050,7 +1051,7 @@ class CoordinatorPanel extends RolePanel {
         try {
             LocalDate date = LocalDate.parse(d);
             Session ses = new Session(date, v, SessionType.valueOf(t));
-            // provide some default slots (optional): not auto — keep manual for control
+            // provide some default slots (optional): not auto - keep manual for control
             store.sessions.add(ses);
             store.save();
             sessionModel.fireTableDataChanged();
@@ -1186,8 +1187,8 @@ class CoordinatorPanel extends RolePanel {
                 Submission sub = store.findSubmission(sid);
                 User stu = (sub != null) ? store.findUser(sub.studentUserId) : null;
                 sb.append("  ").append(time).append("  - ")
-                        .append(stu != null ? stu.fullName : "Unknown")
-                        .append(" | ").append(sub != null ? sub.preferredType : "?")
+                        .append(stu != null ? stu.fullname : "Unknown")
+                        .append(" | ").append(sub != null ? sub.presentationType : "?")
                         .append(" | ").append(sub != null ? sub.researchTitle : "Missing Submission")
                         .append("\n");
             }
@@ -1199,12 +1200,12 @@ class CoordinatorPanel extends RolePanel {
         } else {
             for (Map.Entry<UUID, List<UUID>> e : ses.evaluatorToSubmissions.entrySet()) {
                 User eval = store.findUser(e.getKey());
-                sb.append("  ").append(eval != null ? eval.fullName : "Unknown Evaluator").append(":\n");
+                sb.append("  ").append(eval != null ? eval.fullname : "Unknown Evaluator").append(":\n");
                 for (UUID sid : e.getValue()) {
                     Submission sub = store.findSubmission(sid);
                     User stu = (sub != null) ? store.findUser(sub.studentUserId) : null;
                     sb.append("     - ")
-                            .append(stu != null ? stu.fullName : "Unknown")
+                            .append(stu != null ? stu.fullname : "Unknown")
                             .append(" | ").append(sub != null ? sub.researchTitle : "Missing")
                             .append("\n");
                 }
@@ -1221,8 +1222,8 @@ class CoordinatorPanel extends RolePanel {
         if (ses == null || sub == null) { UI.err(this, "Select session and submission."); return; }
 
         // Ensure type matches session type
-        if ((ses.sessionType == SessionType.ORAL && sub.preferredType != PresentationType.ORAL) ||
-            (ses.sessionType == SessionType.POSTER && sub.preferredType != PresentationType.POSTER)) {
+        if ((ses.sessionType == SessionType.ORAL && sub.presentationType != PresentationType.ORAL) ||
+            (ses.sessionType == SessionType.POSTER && sub.presentationType != PresentationType.POSTER)) {
             UI.err(this, "Submission type does not match session type.");
             return;
         }
@@ -1303,6 +1304,146 @@ class CoordinatorPanel extends RolePanel {
         UI.info(this, "Evaluator assigned.");
     }
 
+
+
+    // -----------------
+    // Poster Boards Tab (Board IDs + Criteria)
+    // -----------------
+    private final JTable posterCriteriaTable = new JTable();
+    private final PosterCriteriaTableModel posterCriteriaModel = new PosterCriteriaTableModel(store);
+
+    private final JComboBox<String> pbBoardId = new JComboBox<>();
+    private final JTextArea pbCriteria = UI.ta(6, 32);
+    private final JTextArea pbNotes = UI.ta(4, 32);
+    private final JLabel pbStatus = new JLabel(" ");
+
+    private JComponent buildPosterBoardsTab() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        // Left: table of boards & criteria
+        posterCriteriaTable.setModel(posterCriteriaModel);
+        posterCriteriaTable.setRowHeight(26);
+        posterCriteriaTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane left = new JScrollPane(posterCriteriaTable);
+        left.setBorder(BorderFactory.createTitledBorder("Poster Boards & Criteria"));
+
+        // Right: form to create/update criteria
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createTitledBorder("Create / Update Criteria"));
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weightx = 1;
+
+        int y = 0;
+        g.gridx = 0; g.gridy = y; form.add(new JLabel("Board ID"), g);
+        g.gridx = 1; form.add(pbBoardId, g);
+
+        y++;
+        g.gridx = 0; g.gridy = y; g.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Criteria (requirements)"), g);
+        g.gridx = 1; 
+        JScrollPane critSp = new JScrollPane(pbCriteria);
+        form.add(critSp, g);
+
+        y++;
+        g.gridx = 0; g.gridy = y; g.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Notes (logistics)"), g);
+        g.gridx = 1;
+        JScrollPane notesSp = new JScrollPane(pbNotes);
+        form.add(notesSp, g);
+
+        JButton saveBtn = UI.btn("Save / Update");
+        JButton deleteBtn = UI.btn("Delete");
+        JButton refreshBtn = UI.btn("Refresh");
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(refreshBtn);
+        actions.add(deleteBtn);
+        actions.add(saveBtn);
+
+        JPanel right = new JPanel(new BorderLayout(8, 8));
+        right.add(form, BorderLayout.CENTER);
+        right.add(actions, BorderLayout.SOUTH);
+        right.add(pbStatus, BorderLayout.NORTH);
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+        split.setResizeWeight(0.55);
+
+        panel.add(split, BorderLayout.CENTER);
+
+        // wiring
+        refreshPosterBoardCombo();
+        refreshBtn.addActionListener(e -> {
+            refreshPosterBoardCombo();
+            posterCriteriaModel.refresh();
+            pbStatus.setText("Refreshed.");
+        });
+
+        saveBtn.addActionListener(e -> {
+            String board = (String) pbBoardId.getSelectedItem();
+            String criteria = pbCriteria.getText();
+            String notes = pbNotes.getText();
+            try {
+                store.upsertPosterCriteria(board, criteria, notes);
+                posterCriteriaModel.refresh();
+                pbStatus.setText("Saved/updated criteria for " + board + " on " + java.time.LocalDate.now());
+            } catch (Exception ex) {
+                UI.err(this, ex.getMessage());
+            }
+        });
+
+        deleteBtn.addActionListener(e -> {
+            int row = posterCriteriaTable.getSelectedRow();
+            if (row < 0) { UI.err(this, "Select a criteria row to delete."); return; }
+            PosterBoardCriteria c = posterCriteriaModel.getAt(row);
+            if (c == null) return;
+            int ok = JOptionPane.showConfirmDialog(this,
+                    "Delete criteria for board " + c.boardId + "?",
+                    "Confirm", JOptionPane.YES_NO_OPTION);
+            if (ok != JOptionPane.YES_OPTION) return;
+            store.deletePosterCriteria(c.id);
+            posterCriteriaModel.refresh();
+            pbCriteria.setText("");
+            pbNotes.setText("");
+            pbStatus.setText("Deleted.");
+        });
+
+        posterCriteriaTable.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+            int row = posterCriteriaTable.getSelectedRow();
+            if (row < 0) return;
+            PosterBoardCriteria c = posterCriteriaModel.getAt(row);
+            if (c == null) return;
+            pbBoardId.setSelectedItem(c.boardId);
+            pbCriteria.setText(UI.safe(c.criteria));
+            pbNotes.setText(UI.safe(c.notes));
+            pbStatus.setText("Loaded board " + c.boardId + " criteria.");
+        });
+
+        return panel;
+    }
+
+    private void refreshPosterBoardCombo() {
+        // include existing board IDs from submissions + criteria
+        java.util.List<String> ids = store.allPosterBoardIds();
+        String selected = (String) pbBoardId.getSelectedItem();
+
+        pbBoardId.removeAllItems();
+        if (ids.isEmpty()) {
+            pbBoardId.addItem("B1");
+            pbBoardId.addItem("B2");
+            pbBoardId.addItem("B3");
+        } else {
+            for (String id : ids) pbBoardId.addItem(id);
+        }
+
+        if (selected != null) pbBoardId.setSelectedItem(selected);
+    }
+
+
     // -----------------
     // Reports Tab
     // -----------------
@@ -1316,12 +1457,14 @@ class CoordinatorPanel extends RolePanel {
         JButton computeAwards = UI.btn("Compute Winners");
         JButton generateSchedule = UI.btn("Generate Schedule Report");
         JButton generateFinalReport = UI.btn("Generate Final Evaluation Report");
+        JButton generateAgenda = UI.btn("Generate Award Agenda");
         JButton exportCSV = UI.btn("Export Reports to CSV");
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         top.add(exportCSV);
         top.add(generateFinalReport);
         top.add(generateSchedule);
+        top.add(generateAgenda);
         top.add(computeAwards);
 
         panel.add(top, BorderLayout.NORTH);
@@ -1330,6 +1473,7 @@ class CoordinatorPanel extends RolePanel {
         computeAwards.addActionListener(e -> computeWinners());
         generateSchedule.addActionListener(e -> showScheduleReport());
         generateFinalReport.addActionListener(e -> showFinalReport());
+        generateAgenda.addActionListener(e -> showAwardAgenda());
         exportCSV.addActionListener(e -> exportAllCSVs());
 
         return panel;
@@ -1348,17 +1492,17 @@ class CoordinatorPanel extends RolePanel {
             int evalCount = store.evaluationsForSubmission(s.id).size();
             if (evalCount == 0) continue; // require at least 1 evaluation
 
-            if (s.preferredType == PresentationType.ORAL && avg > bestOralScore) {
+            if (s.presentationType == PresentationType.ORAL && avg > bestOralScore) {
                 bestOralScore = avg;
                 bestOral = s.id;
             }
-            if (s.preferredType == PresentationType.POSTER && avg > bestPosterScore) {
+            if (s.presentationType == PresentationType.POSTER && avg > bestPosterScore) {
                 bestPosterScore = avg;
                 bestPoster = s.id;
             }
         }
 
-        // People’s Choice: highest votes (ties -> highest avg score)
+        // People's Choice: highest votes (ties -> highest avg score)
         UUID pc = null;
         int bestVotes = -1;
         double tieAvg = -1;
@@ -1412,9 +1556,9 @@ class CoordinatorPanel extends RolePanel {
                     Submission sub = store.findSubmission(sid);
                     User stu = (sub != null) ? store.findUser(sub.studentUserId) : null;
                     sb.append("  ").append(time).append(" - ")
-                            .append(stu != null ? stu.fullName : "Unknown")
+                            .append(stu != null ? stu.fullname : "Unknown")
                             .append(" | ").append(sub != null ? sub.researchTitle : "Missing")
-                            .append(" | ").append(sub != null ? sub.preferredType : "?")
+                            .append(" | ").append(sub != null ? sub.presentationType : "?")
                             .append("\n");
                 }
             }
@@ -1433,7 +1577,7 @@ class CoordinatorPanel extends RolePanel {
         sb.append("Winners (computed on ").append(store.winners.computedOn).append(")\n");
         sb.append(" - Best Oral: ").append(winnerLine(store.winners.bestOralSubmissionId)).append("\n");
         sb.append(" - Best Poster: ").append(winnerLine(store.winners.bestPosterSubmissionId)).append("\n");
-        sb.append(" - People’s Choice: ").append(winnerLine(store.winners.peoplesChoiceSubmissionId)).append("\n\n");
+        sb.append(" - People's Choice: ").append(winnerLine(store.winners.peoplesChoiceSubmissionId)).append("\n\n");
 
         sb.append("Submissions Summary:\n");
         for (Submission s : store.submissions) {
@@ -1442,8 +1586,8 @@ class CoordinatorPanel extends RolePanel {
             int votes = store.peoplesChoiceCount(s.id);
             int evalCount = store.evaluationsForSubmission(s.id).size();
 
-            sb.append("- ").append(stu != null ? stu.fullName : "Unknown")
-                    .append(" | ").append(s.preferredType)
+            sb.append("- ").append(stu != null ? stu.fullname : "Unknown")
+                    .append(" | ").append(s.presentationType)
                     .append(" | Avg Score: ").append(UI.fmtScore(avg))
                     .append(" (").append(evalCount).append(" evals)")
                     .append(" | Votes: ").append(votes)
@@ -1458,7 +1602,7 @@ class CoordinatorPanel extends RolePanel {
                 sb.append("  Evaluations:\n");
                 for (Evaluation e : evs) {
                     User ev = store.findUser(e.evaluatorUserId);
-                    sb.append("   * ").append(ev != null ? ev.fullName : "Unknown Evaluator")
+                    sb.append("   * ").append(ev != null ? ev.fullname : "Unknown Evaluator")
                             .append(" | PC=").append(e.problemClarity)
                             .append(" M=").append(e.methodology)
                             .append(" R=").append(e.results)
@@ -1473,7 +1617,7 @@ class CoordinatorPanel extends RolePanel {
         // basic analytics
         sb.append("=== BASIC ANALYTICS ===\n");
         long total = store.submissions.size();
-        long oral = store.submissions.stream().filter(x -> x.preferredType == PresentationType.ORAL).count();
+        long oral = store.submissions.stream().filter(x -> x.presentationType == PresentationType.ORAL).count();
         long poster = total - oral;
 
         sb.append("Total Submissions: ").append(total).append("\n");
@@ -1488,11 +1632,66 @@ class CoordinatorPanel extends RolePanel {
         Submission s = store.findSubmission(submissionId);
         if (s == null) return "(missing submission)";
         User stu = store.findUser(s.studentUserId);
-        return (stu != null ? stu.fullName : "Unknown") + " • " + s.preferredType +
-                " • Avg " + UI.fmtScore(store.avgSubmissionScore(s.id)) +
-                " • Votes " + store.peoplesChoiceCount(s.id) +
-                " • " + s.researchTitle;
+        return (stu != null ? stu.fullname : "Unknown") + " * " + s.presentationType +
+                " * Avg " + UI.fmtScore(store.avgSubmissionScore(s.id)) +
+                " * Votes " + store.peoplesChoiceCount(s.id) +
+                " * " + s.researchTitle;
     }
+
+
+    private void showAwardAgenda() {
+        // Generates a simple ceremony agenda/program, including schedule highlights + winners
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== AWARD CEREMONY AGENDA ===\n");
+        sb.append("Generated on: ").append(LocalDate.now()).append("\n\n");
+
+        sb.append("1) Opening\n");
+        sb.append(" - Welcome remarks (Coordinator)\n");
+        sb.append(" - Brief seminar overview & rules\n\n");
+
+        sb.append("2) Session Highlights (Schedule Summary)\n");
+        if (store.sessions.isEmpty()) {
+            sb.append(" - (No sessions created yet)\n\n");
+        } else {
+            List<Session> ordered = new ArrayList<>(store.sessions);
+            ordered.sort(Comparator
+                    .comparing((Session s) -> s.date)
+                    .thenComparing(s -> s.venue == null ? "" : s.venue)
+                    .thenComparing(s -> s.sessionType.toString()));
+            for (Session s : ordered) {
+                sb.append(" - ").append(s.date).append(" | ").append(s.venue)
+                        .append(" | ").append(s.sessionType).append("\n");
+                if (s.timeSlotToSubmission.isEmpty()) {
+                    sb.append("    (No time slots)\n");
+                } else {
+                    for (Map.Entry<LocalTime, UUID> en : s.timeSlotToSubmission.entrySet()) {
+                        LocalTime t = en.getKey();
+                        UUID subId = en.getValue();
+                        Submission sub = store.findSubmission(subId);
+                        String title = (sub == null) ? "(empty)" : sub.researchTitle;
+                        User stu = (sub == null) ? null : store.findUser(sub.studentUserId);
+                        String who = (stu == null) ? "" : (" - " + stu.fullname);
+                        sb.append("    ").append(t).append(" : ").append(title).append(who).append("\n");
+                    }
+                }
+            }
+            sb.append("\n");
+        }
+
+        sb.append("3) Award Announcements\n");
+        sb.append(" - Best Oral Presentation: ").append(winnerLine(store.winners.bestOralSubmissionId)).append("\n");
+        sb.append(" - Best Poster Presentation: ").append(winnerLine(store.winners.bestPosterSubmissionId)).append("\n");
+        sb.append(" - People's Choice Award: ").append(winnerLine(store.winners.peoplesChoiceSubmissionId)).append("\n\n");
+
+        sb.append("4) Closing\n");
+        sb.append(" - Photo session\n");
+        sb.append(" - Closing remarks\n");
+
+        reportArea.setText(sb.toString());
+        reportArea.setCaretPosition(0);
+    }
+
+
 
     private void exportAllCSVs() {
         JFileChooser chooser = new JFileChooser();
@@ -1511,6 +1710,7 @@ class CoordinatorPanel extends RolePanel {
             exportScheduleCSV(new File(dir, "schedule.csv"));
             exportEvaluationsCSV(new File(dir, "evaluations.csv"));
             exportAwardsCSV(new File(dir, "awards.csv"));
+            exportPosterCriteriaCSV(new File(dir, "poster_criteria.csv"));
             UI.info(this, "Exported CSV files to:\n" + dir.getAbsolutePath());
         } catch (Exception ex) {
             UI.err(this, "Export failed: " + ex.getMessage());
@@ -1519,10 +1719,10 @@ class CoordinatorPanel extends RolePanel {
 
     private void exportUsersCSV(File file) throws IOException {
         StringBuilder sb = new StringBuilder();
-        sb.append("username,fullName,role\n");
+        sb.append("username,fullname,role\n");
         for (User u : store.users) {
             sb.append(csv(u.username)).append(",")
-                    .append(csv(u.fullName)).append(",")
+                    .append(csv(u.fullname)).append(",")
                     .append(csv(u.role.toString())).append("\n");
         }
         writeUtf8(file, sb.toString());
@@ -1545,8 +1745,8 @@ class CoordinatorPanel extends RolePanel {
                 if (sid != null) {
                     Submission sub = store.findSubmission(sid);
                     User stu = (sub != null) ? store.findUser(sub.studentUserId) : null;
-                    presenter = (stu != null ? stu.fullName : "Unknown");
-                    stype = (sub != null ? sub.preferredType.toString() : "");
+                    presenter = (stu != null ? stu.fullname : "Unknown");
+                    stype = (sub != null ? sub.presentationType.toString() : "");
                     title = (sub != null ? sub.researchTitle : "");
                 }
                 sb.append(csv(ses.date.toString())).append(",")
@@ -1568,9 +1768,9 @@ class CoordinatorPanel extends RolePanel {
             User ev = store.findUser(e.evaluatorUserId);
             Submission sub = store.findSubmission(e.submissionId);
             User stu = (sub != null) ? store.findUser(sub.studentUserId) : null;
-            sb.append(csv(ev != null ? ev.fullName : "Unknown")).append(",")
-                    .append(csv(stu != null ? stu.fullName : "Unknown")).append(",")
-                    .append(csv(sub != null ? sub.preferredType.toString() : "")).append(",")
+            sb.append(csv(ev != null ? ev.fullname : "Unknown")).append(",")
+                    .append(csv(stu != null ? stu.fullname : "Unknown")).append(",")
+                    .append(csv(sub != null ? sub.presentationType.toString() : "")).append(",")
                     .append(csv(sub != null ? sub.researchTitle : "")).append(",")
                     .append(e.problemClarity).append(",")
                     .append(e.methodology).append(",")
@@ -1588,6 +1788,21 @@ class CoordinatorPanel extends RolePanel {
         sb.append(csv("Best Oral")).append(",").append(csv(winnerLine(store.winners.bestOralSubmissionId))).append("\n");
         sb.append(csv("Best Poster")).append(",").append(csv(winnerLine(store.winners.bestPosterSubmissionId))).append("\n");
         sb.append(csv("People's Choice")).append(",").append(csv(winnerLine(store.winners.peoplesChoiceSubmissionId))).append("\n");
+        writeUtf8(file, sb.toString());
+    }
+
+
+
+    private void exportPosterCriteriaCSV(File file) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("board_id,criteria,notes,updated_date\n");
+        for (PosterBoardCriteria c : store.posterCriteria) {
+            if (c == null) continue;
+            sb.append(csv(c.boardId)).append(",")
+              .append(csv(c.criteria)).append(",")
+              .append(csv(c.notes)).append(",")
+              .append(csv(String.valueOf(c.updatedDate))).append("\n");
+        }
         writeUtf8(file, sb.toString());
     }
 
@@ -1643,7 +1858,7 @@ class CoordinatorPanel extends RolePanel {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Submission s) {
                     User stu = store.findUser(s.studentUserId);
-                    setText((stu != null ? stu.fullName : "Unknown") + " • " + s.preferredType + " • " + s.researchTitle);
+                    setText((stu != null ? stu.fullname : "Unknown") + " * " + s.presentationType + " * " + s.researchTitle);
                 }
                 return this;
             }
@@ -1670,7 +1885,7 @@ class UserTableModel extends AbstractTableModel {
         User u = store.users.get(rowIndex);
         return switch (columnIndex) {
             case 0 -> u.username;
-            case 1 -> u.fullName;
+            case 1 -> u.fullname;
             case 2 -> u.role.toString();
             default -> "";
         };
@@ -1703,6 +1918,43 @@ class SessionTableModel extends AbstractTableModel {
             case 3 -> s.timeSlotToSubmission.size();
             case 4 -> filled;
             case 5 -> assignments;
+            default -> "";
+        };
+    }
+}
+
+
+class PosterCriteriaTableModel extends AbstractTableModel {
+    private final DataStore store;
+    private final String[] cols = {"Board ID", "Criteria (summary)", "Notes (summary)", "Updated"};
+
+    PosterCriteriaTableModel(DataStore store) { this.store = store; }
+
+    void refresh() { fireTableDataChanged(); }
+
+    PosterBoardCriteria getAt(int row) {
+        if (row < 0 || row >= store.posterCriteria.size()) return null;
+        return store.posterCriteria.get(row);
+    }
+
+    @Override public int getRowCount() { return store.posterCriteria.size(); }
+    @Override public int getColumnCount() { return cols.length; }
+    @Override public String getColumnName(int column) { return cols[column]; }
+
+    private String summarize(String s, int max) {
+        if (s == null) return "";
+        String t = s.trim().replaceAll("\\s+", " ");
+        if (t.length() <= max) return t;
+        return t.substring(0, Math.max(0, max - 1)) + "...";
+    }
+
+    @Override public Object getValueAt(int rowIndex, int columnIndex) {
+        PosterBoardCriteria c = store.posterCriteria.get(rowIndex);
+        return switch (columnIndex) {
+            case 0 -> c.boardId;
+            case 1 -> summarize(c.criteria, 60);
+            case 2 -> summarize(c.notes, 50);
+            case 3 -> c.updatedDate;
             default -> "";
         };
     }

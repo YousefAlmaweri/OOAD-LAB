@@ -1,4 +1,4 @@
-package Lab_Exercise;
+package Lab_Exercise.V2;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -13,18 +13,18 @@ class User implements Serializable {
     UUID id = UUID.randomUUID();
     String username;
     String password;
-    String fullName;
+    String fullname;
     Role role;
 
-    User(String username, String password, String fullName, Role role) {
+    User(String username, String password, String fullname, Role role) {
         this.username = username;
         this.password = password;
-        this.fullName = fullName;
+        this.fullname = fullname;
         this.role = role;
     }
 
     @Override public String toString() {
-        return fullName + " (" + username + ")";
+        return fullname + " (" + username + ")";
     }
 }
 
@@ -35,7 +35,7 @@ class Submission implements Serializable {
     String researchTitle;
     String abstractText;
     String supervisorName;
-    PresentationType preferredType;
+    PresentationType presentationType;
 
     String materialFilePath; // slides/poster path
     String posterBoardId;     // used if poster
@@ -87,6 +87,28 @@ class Evaluation implements Serializable {
         return (problemClarity + methodology + results + presentation) / 4.0;
     }
 }
+
+
+// Poster board criteria management (Coordinator)
+// - Manages poster board IDs and criteria/notes for each board
+class PosterBoardCriteria implements Serializable {
+    UUID id = UUID.randomUUID();
+    String boardId;     // e.g., "B12"
+    String criteria;    // requirements/criteria for posters placed on this board
+    String notes;       // optional logistics notes
+    LocalDate updatedDate = LocalDate.now();
+
+    PosterBoardCriteria(String boardId, String criteria, String notes) {
+        this.boardId = boardId;
+        this.criteria = criteria;
+        this.notes = notes;
+    }
+
+    @Override public String toString() {
+        return boardId;
+    }
+}
+
 
 class AwardWinners implements Serializable {
     UUID bestOralSubmissionId;

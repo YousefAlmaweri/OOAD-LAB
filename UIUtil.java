@@ -1,4 +1,4 @@
-package Lab_Exercise;
+package Lab_Exercise.V2;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
